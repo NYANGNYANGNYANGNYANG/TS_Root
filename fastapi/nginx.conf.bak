@@ -1,0 +1,50 @@
+
+
+worker_processes 1;
+
+events {
+	worker_connections 1024;
+}
+
+http {
+
+	include mime.types;
+    	
+	# MIME 타입을 못 찾았을 때 기본값
+    	default_type application/octet-stream;
+
+	server{
+		listen 443 ssl;
+		server_name 172.16.8.221;
+
+		################ 컨테이너 기준 #################
+		ssl_certificate /etc/nginx/certs/TS_server.cert.pem;
+		ssl_certificate_key /etc/nginx/certs/TS_server.key.pem;
+#		ssl_trusted_certificate /etc/nginx/certs/ca.cert.pem;
+		#################################################
+
+		# 허용할 TLS 버전 (1.0, 1.1은 보안 문제로 제외)
+        	ssl_protocols TLSv1.2 TLSv1.3;
+        
+		# 허용 암호화 알고리즘 (취약 알고리즘 제외)
+        	ssl_ciphers HIGH:!aNULL:!MD5;
+
+		location / {
+			proxy_pass http://nodejs:3000;
+			proxy_set_header Host $host;
+			proxy_set_header X-Real-IP $remote_addr;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_set_header X-Forwarded-Proto $scheme;
+
+		}
+		
+		location /api/ {
+      			proxy_pass http://fastapi:3601;
+      			proxy_set_header Host $host;
+      			proxy_set_header X-Real-IP $remote_addr;
+				proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+				proxy_set_header X-Forwarded-Proto $scheme;
+		
+		}
+
+}

@@ -1,0 +1,99 @@
+# ===================================
+# OpenSSL Minimal Configuration for Internal Root CA
+# ===================================
+
+[ ca ]
+default_ca = CA_default              # Which CA section to use (root CA only)
+
+# ROOT CA
+[ CA_default ]
+dir               = /srv/TS_ca       # Root CA base directory
+certs             = $dir/certs       # Where issued certs are stored
+crl_dir           = $dir/crl         # Where CRLs are stored
+new_certs_dir      = $dir/newcerts     # Where new certs are placed
+database          = $dir/index.txt   # Certificate database file
+serial            = $dir/serial      # Serial number file
+
+private_key       = $dir/private/ca.key.pem   # Root CA private key
+certificate       = $dir/certs/ca.cert.pem    # Root CA self-signed certificate
+
+default_md        = sha256            # Hash algorithm for signing certificates
+default_days      = 825               # Default validity (about 2 years)
+policy            = policy_loose      # Use relaxed CSR field policy for internal use
+
+# ===================================
+# V3_ca
+# CA cert cfg
+# ===================================
+[ v3_ca ]
+subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always,issuer
+
+# CA로 사용할 수 있음을 명시 (필수)
+basicConstraints = critical,CA:true
+
+# CA 키의 사용 목적 정의 (필수)
+keyUsage = critical, digitalSignature, cRLSign, keyCertSign
+
+# (선택) Certificate Policies – 필요시 내부 정책 OID 정의
+# certificatePolicies = @pol_section
+
+# (선택) Path length 제약
+# pathlen=0 → 서브 CA 못만들게 제한
+# pathlen=1 → 한 단계 서브 CA까지 가능
+# 아래와 같이 basicConstraints에 추가 가능
+# basicConstraints = critical,CA:true,pathlen:0
+
+# ===================================
+# CSR Policy section
+# ===================================
+[ policy_loose ]
+countryName             = optional     # Country code (not required for internal use)
+stateOrProvinceName     = optional     # State/Province name
+organizationName        = optional     # Organization name
+organizationalUnitName  = optional     # Department name
+commonName              = supplied     # Must supply CN (server name or IP)
+emailAddress            = optional     # Email (optional for internal certs)
+
+# ===================================
+# CSR (Certificate Signing Request) settings
+# CSR default
+# ===================================
+[ req ]
+default_bits        = 4096             # RSA key length for generated keys
+default_md          = sha256           # Hash used when signing CSR
+distinguished_name  = req_distinguished_name
+string_mask         = utf8only         # Only allow UTF-8 input
+
+# ===================================
+# DN (Distinguished Name) prompts for CSR
+# CSR 작성 시 프롬프트로 보여줄 항목 (Question List)
+# ===================================
+[ req_distinguished_name ]
+countryName                     = Country Name (2 letter code)   # e.g. KR
+countryName_default             = KR
+stateOrProvinceName             = State                          # e.g. Seoul
+stateOrProvinceName_default     = Seoul
+organizationName                = Organization Name (HB~)
+organizationName_default        = HBAMC
+commonName                      = Common Name (e.g. server FQDN or IP)
+commonName_max                  = 64    # nginx server hostname or IP
+
+# ===================================
+# Server certificate extensions (for HTTPS)
+# 서버용 인증서 발급시 사용되는 확장 필드(OID) 정의
+# ===================================
+[ server_cert ]
+basicConstraints = CA:FALSE               # This cert is NOT a CA cert
+keyUsage         = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth             # Mark this cert for server (HTTPS)
+subjectAltName   = @alt_names             # SAN must be defined (modern browsers require it)
+
+# ===================================
+# Subject Alternative Names (SAN)
+# Browsers check SAN instead of CN for HTTPS validation
+# ===================================
+[ alt_names ]
+DNS.1   = server.local        # Internal DNS name (nginx hostname)
+IP.1    = 172.16.0.101        # Server IP for HTTPS access
+
