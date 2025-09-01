@@ -1,19 +1,16 @@
 
-# DB runtime files (do not track)
+# DB runtime files 
 postgres/data/
 
 # runtime & secrets
-postgres/data/
 nginx/logs/
 nginx/certs/
 TS_ca/
+TS_ca_old/
+uploads/
+
+# .env
+postgres/.env
 fastapi/.env
 nodejs/.env
 
-# runtime & secrets
-postgres/data/
-nginx/logs/
-nginx/certs/
-TS_ca/
-fastapi/.env
-nodejs/.env
