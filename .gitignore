@@ -1,3 +1,11 @@
 
 # DB runtime files (do not track)
 postgres/data/
+
+# runtime & secrets
+postgres/data/
+nginx/logs/
+nginx/certs/
+TS_ca/
+fastapi/.env
+nodejs/.env
