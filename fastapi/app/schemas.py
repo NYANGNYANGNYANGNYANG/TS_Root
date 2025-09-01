@@ -13,7 +13,7 @@ from datetime import datetime
 
 TicketStatus = Literal["TODO", "ACTIVE", "DONE"]
 TicketPriority = Literal["LOW", "NORMAL", "CRITICAL"]
-Category = Literal["Server", "Network", "OA", "Security", "ETC"]
+Category = Literal["SERVER", "SECURITY", "NETWORK", "OA", "ETC"]
 
 class Attachment(BaseModel):
     id: Optional[int] = None
@@ -51,11 +51,17 @@ class TicketBase(BaseModel):
 class TicketCreate(BaseModel):
     requester: str
     department: str
-    category: Category
+    category: AllowedCategory
+    title: str | None = None
     content: str
-    priority: TicketPriority
-    worker: Optional[str] = ""
-    status: TicketStatus
+    priority: AllowedPriority
+    status: AllowedStatus
+
+    @field_validator('category','priority','status', mode='before')
+    @classmethod
+    def _upper(cls, v):
+        return v.strip().upper() if isinstance(v, str) else v
+
 
 class TicketUpdateStatus(BaseModel):
     status: TicketStatus

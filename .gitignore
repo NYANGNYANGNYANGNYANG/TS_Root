@@ -1,0 +1,3 @@
+
+# DB runtime files (do not track)
+postgres/data/
